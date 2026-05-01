@@ -3,7 +3,8 @@ import { IconEdit, IconServer } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 
 import { Cluster } from '@/types/api'
-import { ClusterCreateRequest } from '@/lib/api'
+import { ClusterCreateRequest, useEnvironmentTypes } from '@/lib/api'
+import { COLOR_DOT, cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -40,6 +41,7 @@ function createClusterFormData(cluster?: Cluster | null) {
     enabled: cluster?.enabled ?? true,
     isDefault: cluster?.isDefault ?? false,
     inCluster: cluster?.inCluster ?? false,
+    environment: cluster?.environment || 'default',
   }
 }
 
@@ -70,6 +72,7 @@ function ClusterDialogContent({
 }: Omit<ClusterDialogProps, 'open'>) {
   const { t } = useTranslation()
   const isEditMode = !!cluster
+  const { data: envTypes = [] } = useEnvironmentTypes()
 
   const [formData, setFormData] = useState(() => createClusterFormData(cluster))
 
@@ -143,6 +146,35 @@ function ClusterDialogContent({
               </Select>
             </div>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="cluster-environment">
+            {t('clusterManagement.form.environment.label', 'Environment')}
+          </Label>
+          <Select
+            value={formData.environment}
+            onValueChange={(value) => handleChange('environment', value)}
+          >
+            <SelectTrigger id="cluster-environment">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {envTypes.map((env) => (
+                <SelectItem key={env.name} value={env.name}>
+                  <span className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        'inline-block h-2 w-2 shrink-0 rounded-full',
+                        COLOR_DOT[env.color] ?? 'bg-gray-400'
+                      )}
+                    />
+                    {env.name.charAt(0).toUpperCase() + env.name.slice(1)}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">

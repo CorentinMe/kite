@@ -4,11 +4,90 @@ import { TFunction } from 'i18next'
 import { NodeCondition } from 'kubernetes-types/core/v1'
 import { twMerge } from 'tailwind-merge'
 
-import { PodMetrics } from '@/types/api'
+import { EnvironmentType, PodMetrics } from '@/types/api'
 import { NodeConditionType } from '@/types/k8s'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+export const AVAILABLE_ENV_COLORS = [
+  'blue', 'green', 'yellow', 'red',
+  'purple', 'orange', 'cyan', 'pink', 'indigo', 'teal',
+] as const
+
+export type EnvColor = typeof AVAILABLE_ENV_COLORS[number]
+
+export const COLOR_DOT: Record<string, string> = {
+  blue: 'bg-blue-500',
+  green: 'bg-green-500',
+  yellow: 'bg-yellow-500',
+  red: 'bg-red-500',
+  purple: 'bg-purple-500',
+  orange: 'bg-orange-500',
+  cyan: 'bg-cyan-500',
+  pink: 'bg-pink-500',
+  indigo: 'bg-indigo-500',
+  teal: 'bg-teal-500',
+}
+
+export const COLOR_TEXT: Record<string, string> = {
+  blue: 'text-blue-600 dark:text-blue-400',
+  green: 'text-green-600 dark:text-green-400',
+  yellow: 'text-yellow-600 dark:text-yellow-400',
+  red: 'text-red-600 dark:text-red-400',
+  purple: 'text-purple-600 dark:text-purple-400',
+  orange: 'text-orange-600 dark:text-orange-400',
+  cyan: 'text-cyan-600 dark:text-cyan-400',
+  pink: 'text-pink-600 dark:text-pink-400',
+  indigo: 'text-indigo-600 dark:text-indigo-400',
+  teal: 'text-teal-600 dark:text-teal-400',
+}
+
+export const COLOR_BORDER: Record<string, string> = {
+  blue: 'border-blue-500',
+  green: 'border-green-500',
+  yellow: 'border-yellow-500',
+  red: 'border-red-500',
+  purple: 'border-purple-500',
+  orange: 'border-orange-500',
+  cyan: 'border-cyan-500',
+  pink: 'border-pink-500',
+  indigo: 'border-indigo-500',
+  teal: 'border-teal-500',
+}
+
+export const COLOR_BG: Record<string, string> = {
+  blue: 'bg-blue-500/10',
+  green: 'bg-green-500/10',
+  yellow: 'bg-yellow-500/10',
+  red: 'bg-red-500/10',
+  purple: 'bg-purple-500/10',
+  orange: 'bg-orange-500/10',
+  cyan: 'bg-cyan-500/10',
+  pink: 'bg-pink-500/10',
+  indigo: 'bg-indigo-500/10',
+  teal: 'bg-teal-500/10',
+}
+
+function findEnvColor(envName: string, envTypes: EnvironmentType[]): string {
+  return envTypes.find((e) => e.name === envName)?.color ?? 'blue'
+}
+
+export function getEnvDotColor(envName: string, envTypes: EnvironmentType[]): string {
+  return COLOR_DOT[findEnvColor(envName, envTypes)] ?? 'bg-gray-400'
+}
+
+export function getEnvTextColor(envName: string, envTypes: EnvironmentType[]): string {
+  return COLOR_TEXT[findEnvColor(envName, envTypes)] ?? ''
+}
+
+export function getEnvBgColor(envName: string, envTypes: EnvironmentType[]): string {
+  return COLOR_BG[findEnvColor(envName, envTypes)] ?? ''
+}
+
+export function getEnvBorderColor(envName: string, envTypes: EnvironmentType[]): string {
+  return COLOR_BORDER[findEnvColor(envName, envTypes)] ?? 'border-border'
 }
 
 // Simple debounce function for string input handlers with cancel support

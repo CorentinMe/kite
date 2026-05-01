@@ -17,7 +17,8 @@ type Role struct {
 	Clusters    []string `yaml:"clusters" json:"clusters"`
 	Resources   []string `yaml:"resources" json:"resources"`
 	Namespaces  []string `yaml:"namespaces" json:"namespaces"`
-	Verbs       []string `yaml:"verbs" json:"verbs"`
+	Verbs        []string `yaml:"verbs" json:"verbs"`
+	Environments []string `yaml:"environments" json:"environments"`
 }
 
 type RoleMapping struct {

@@ -9,6 +9,7 @@ import (
 	"github.com/zxh326/kite/pkg/ai"
 	"github.com/zxh326/kite/pkg/auth"
 	"github.com/zxh326/kite/pkg/cluster"
+	"github.com/zxh326/kite/pkg/environment"
 	"github.com/zxh326/kite/pkg/handlers"
 	"github.com/zxh326/kite/pkg/handlers/resources"
 	"github.com/zxh326/kite/pkg/middleware"
@@ -80,6 +81,12 @@ func registerAdminRoutes(r *gin.RouterGroup, authHandler *auth.AuthHandler, cm *
 	clusterAPI.POST("/", cm.CreateCluster)
 	clusterAPI.PUT("/:id", cm.UpdateCluster)
 	clusterAPI.DELETE("/:id", cm.DeleteCluster)
+
+	envTypeAPI := adminAPI.Group("/environment-types")
+	envTypeAPI.GET("/", environment.List)
+	envTypeAPI.POST("/", environment.Create)
+	envTypeAPI.PUT("/:id", environment.Update)
+	envTypeAPI.DELETE("/:id", environment.Delete)
 
 	rbacAPI := adminAPI.Group("/roles")
 	rbacAPI.GET("/", rbac.ListRoles)

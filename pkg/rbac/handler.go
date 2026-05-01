@@ -90,6 +90,7 @@ func UpdateRole(c *gin.Context) {
 	role.Namespaces = req.Namespaces
 	role.Resources = req.Resources
 	role.Verbs = req.Verbs
+	role.Environments = req.Environments
 
 	if err := model.DB.Save(&role).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update role: " + err.Error()})

@@ -101,12 +101,19 @@ func InitDB() {
 		ResourceHistory{},
 		ResourceTemplate{},
 		PendingSession{},
+		EnvironmentType{},
 	}
 	for _, model := range models {
 		err = DB.AutoMigrate(model)
 		if err != nil {
 			panic("failed to migrate database: " + err.Error())
 		}
+	}
+
+	var envCount int64
+	DB.Model(&EnvironmentType{}).Count(&envCount)
+	if envCount == 0 {
+		DB.Create(&EnvironmentType{Name: "default", Color: "blue"})
 	}
 
 	sqldb, err := DB.DB()

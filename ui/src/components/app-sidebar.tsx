@@ -1,14 +1,16 @@
 import * as React from 'react'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import Icon from '@/assets/icon.svg'
 import { useSidebarConfig } from '@/contexts/sidebar-config-context'
 import { CollapsibleContent } from '@radix-ui/react-collapsible'
 import { IconLayoutDashboard } from '@tabler/icons-react'
 import { ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
-import { useVersionInfo } from '@/lib/api'
+import { useEnvironmentTypes, useVersionInfo } from '@/lib/api'
+import { useCluster } from '@/hooks/use-cluster'
+import { cn, getEnvBgColor, getEnvDotColor, getEnvTextColor } from '@/lib/utils'
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +22,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from '@/components/ui/sidebar'
 
@@ -30,8 +35,40 @@ import { VersionInfo } from './version-info'
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { t } = useTranslation()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { isMobile, setOpenMobile } = useSidebar()
+
   const { config, isLoading, getIconComponent } = useSidebarConfig()
+  const { clusters, currentCluster, setCurrentCluster } = useCluster()
+  const { data: envTypes = [] } = useEnvironmentTypes()
+  const activeEnv = searchParams.get('environment')
+
+  useEffect(() => {
+    if (!activeEnv || clusters.length === 0) return
+    const envClusters = clusters.filter(
+      (c) => (c.environment || 'default') === activeEnv
+    )
+    if (envClusters.length === 0) return
+    const target = envClusters.find((c) => c.isDefault) ?? envClusters[0]
+    if (target.name !== currentCluster) {
+      setCurrentCluster(target.name)
+    }
+  }, [activeEnv, clusters])
+
+  const environments = useMemo(() => {
+    const seen = new Set<string>()
+    return clusters
+      .map((c) => c.environment || 'default')
+      .filter((env) => {
+        if (seen.has(env)) return false
+        seen.add(env)
+        return true
+      })
+      .map((env) => ({
+        value: env,
+        label: env.charAt(0).toUpperCase() + env.slice(1),
+      }))
+  }, [clusters])
   const { data: versionInfo } = useVersionInfo()
 
   const pinnedItems = useMemo(() => {
@@ -147,15 +184,43 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 tooltip={t('nav.overview')}
-                asChild
-                isActive={isActive('/')}
-                className="transition-all duration-200 hover:bg-accent/60 active:scale-95 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm"
+                className="cursor-default transition-all duration-200 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:shadow-sm"
               >
-                <Link to="/" onClick={handleMenuItemClick}>
-                  <IconLayoutDashboard className="text-sidebar-primary" />
-                  <span className="font-medium">{t('nav.overview')}</span>
-                </Link>
+                <IconLayoutDashboard className="text-sidebar-primary" />
+                <span className="font-medium">{t('nav.overview')}</span>
               </SidebarMenuButton>
+              {environments.length > 0 && (
+                <SidebarMenuSub>
+                  {environments.map((env) => {
+                    const isEnvActive = searchParams.get('environment') === env.value
+                    return (
+                      <SidebarMenuSubItem key={env.value}>
+                        <SidebarMenuSubButton
+                          asChild
+                          isActive={isEnvActive}
+                          className={cn(
+                            isEnvActive && getEnvBgColor(env.value, envTypes),
+                            isEnvActive && getEnvTextColor(env.value, envTypes)
+                          )}
+                        >
+                          <Link
+                            to={`/?environment=${env.value}`}
+                            onClick={handleMenuItemClick}
+                          >
+                            <span
+                              className={cn(
+                                'mr-1.5 inline-block h-2 w-2 shrink-0 rounded-full',
+                                getEnvDotColor(env.value, envTypes)
+                              )}
+                            />
+                            {env.label}
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    )
+                  })}
+                </SidebarMenuSub>
+              )}
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>

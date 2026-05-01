@@ -4,6 +4,8 @@ import {
   APIKey,
   AuditLogResponse,
   Cluster,
+  EnvironmentType,
+  EnvironmentTypeRequest,
   FetchUserListResponse,
   OAuthProvider,
   Role,
@@ -20,6 +22,7 @@ export interface ClusterCreateRequest {
   prometheusURL?: string
   inCluster?: boolean
   isDefault?: boolean
+  environment?: string
 }
 
 export interface ClusterUpdateRequest extends ClusterCreateRequest {
@@ -494,4 +497,41 @@ export const deleteAPIKey = async (
   id: number
 ): Promise<{ message: string }> => {
   return await apiClient.delete<{ message: string }>(`/admin/apikeys/${id}`)
+}
+
+// Environment Type Management
+export const fetchEnvironmentTypes = (): Promise<EnvironmentType[]> => {
+  return fetchAPI<EnvironmentType[]>('/admin/environment-types/')
+}
+
+export const useEnvironmentTypes = (options?: { staleTime?: number }) => {
+  return useQuery({
+    queryKey: ['environment-types'],
+    queryFn: fetchEnvironmentTypes,
+    staleTime: options?.staleTime || 30000,
+  })
+}
+
+export const createEnvironmentType = async (
+  data: EnvironmentTypeRequest
+): Promise<EnvironmentType> => {
+  return await apiClient.post<EnvironmentType>('/admin/environment-types/', data)
+}
+
+export const updateEnvironmentType = async (
+  id: number,
+  data: Partial<EnvironmentTypeRequest>
+): Promise<{ message: string }> => {
+  return await apiClient.put<{ message: string }>(
+    `/admin/environment-types/${id}`,
+    data
+  )
+}
+
+export const deleteEnvironmentType = async (
+  id: number
+): Promise<{ message: string }> => {
+  return await apiClient.delete<{ message: string }>(
+    `/admin/environment-types/${id}`
+  )
 }

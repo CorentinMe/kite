@@ -9,6 +9,7 @@ type Cluster struct {
 	InCluster     bool         `json:"in_cluster" gorm:"type:boolean;default:false"`
 	IsDefault     bool         `json:"is_default" gorm:"type:boolean;default:false"`
 	Enable        bool         `json:"enable" gorm:"type:boolean;default:true"`
+	Environment   string       `json:"environment" gorm:"type:varchar(50);default:'default'"`
 }
 
 func AddCluster(cluster *Cluster) error {

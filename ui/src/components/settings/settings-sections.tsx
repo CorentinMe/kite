@@ -5,6 +5,7 @@ import { APIKeyManagement } from './apikey-management'
 import { AuditLog } from './audit-log'
 import { AuthenticationManagement } from './authentication-management'
 import { ClusterManagement } from './cluster-management'
+import { EnvironmentManagement } from './environment-management'
 import { GeneralManagement } from './general-management'
 import { RBACManagement } from './rbac-management'
 import { TemplateManagement } from './template-management'
@@ -43,6 +44,12 @@ export const settingsSectionRegistry: SettingsSectionDefinition[] = [
     'settings.tabs.clusters',
     'Cluster',
     ClusterManagement
+  ),
+  createSettingsSectionDefinition(
+    'environments',
+    'settings.tabs.environments',
+    'Environments',
+    EnvironmentManagement
   ),
   createSettingsSectionDefinition(
     'oauth',

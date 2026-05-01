@@ -11,11 +11,22 @@ import (
 	"k8s.io/klog/v2"
 )
 
+func matchEnvironment(environments []string, clusterName string) bool {
+	if len(environments) == 0 {
+		return true
+	}
+	rwlock.RLock()
+	env := clusterEnvMap[clusterName]
+	rwlock.RUnlock()
+	return contains(environments, env)
+}
+
 // CanAccess checks if user/oidcGroup can access resource with verb in cluster/namespace
 func CanAccess(user model.User, resource, verb, cluster, namespace string) bool {
 	roles := GetUserRoles(user)
 	for _, role := range roles {
 		if match(role.Clusters, cluster) &&
+			matchEnvironment(role.Environments, cluster) &&
 			match(role.Namespaces, namespace) &&
 			match(role.Resources, resource) &&
 			match(role.Verbs, verb) {
@@ -32,7 +43,7 @@ func CanAccess(user model.User, resource, verb, cluster, namespace string) bool 
 func CanAccessCluster(user model.User, name string) bool {
 	roles := GetUserRoles(user)
 	for _, role := range roles {
-		if match(role.Clusters, name) {
+		if match(role.Clusters, name) && matchEnvironment(role.Environments, name) {
 			return true
 		}
 	}
@@ -42,7 +53,9 @@ func CanAccessCluster(user model.User, name string) bool {
 func CanAccessNamespace(user model.User, cluster, name string) bool {
 	roles := GetUserRoles(user)
 	for _, role := range roles {
-		if match(role.Clusters, cluster) && match(role.Namespaces, name) {
+		if match(role.Clusters, cluster) &&
+			matchEnvironment(role.Environments, cluster) &&
+			match(role.Namespaces, name) {
 			return true
 		}
 	}

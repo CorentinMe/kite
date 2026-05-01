@@ -3,7 +3,7 @@ import { IconEdit, IconShieldCheck, IconX } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 
 import { Cluster, Role } from '@/types/api'
-import { useClusterList } from '@/lib/api'
+import { useClusterList, useEnvironmentTypes } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -33,6 +33,7 @@ export function RBACDialog({
 }: RBACDialogProps) {
   const { t } = useTranslation()
   const isEdit = !!role
+  const { data: envTypes = [] } = useEnvironmentTypes()
 
   const [form, setForm] = useState<Partial<Role>>({
     name: '',
@@ -41,6 +42,7 @@ export function RBACDialog({
     namespaces: [],
     resources: [],
     verbs: [],
+    environments: [],
   })
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export function RBACDialog({
     setForm((prev) => ({ ...(prev || {}), [field]: value }))
 
   const setArrayField = (
-    field: 'clusters' | 'namespaces' | 'resources' | 'verbs',
+    field: 'clusters' | 'namespaces' | 'resources' | 'verbs' | 'environments',
     items: string[]
   ) => {
     setForm((prev) => ({ ...(prev || {}), [field]: items }))
@@ -65,12 +67,14 @@ export function RBACDialog({
     onChange,
     placeholder,
     suggestions,
+    optional,
   }: {
     label: string
     items: string[]
     onChange: (items: string[]) => void
     placeholder?: string
     suggestions?: string[]
+    optional?: boolean
   }) {
     const [input, setInput] = useState('')
     const [focused, setFocused] = useState(false)
@@ -119,7 +123,7 @@ export function RBACDialog({
                 // Delay hiding suggestions to allow suggestion click to register
                 setTimeout(() => setFocused(false), 150)
               }}
-              required={items.length === 0}
+              required={!optional && items.length === 0}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault()
@@ -255,6 +259,15 @@ export function RBACDialog({
                   'log',
                   'exec',
                 ]}
+              />
+
+              <ListEditor
+                label={t('rbac.form.environments.label', 'Environments')}
+                items={form.environments || []}
+                onChange={(items) => setArrayField('environments', items)}
+                placeholder="dev, qualification, production"
+                suggestions={envTypes.map((e) => e.name)}
+                optional
               />
             </div>
           </div>

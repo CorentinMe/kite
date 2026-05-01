@@ -20,14 +20,22 @@ func (cm *ClusterManager) GetClusters(c *gin.Context) {
 	clusters, errors, defaultContext := cm.snapshotState()
 	result := make([]common.ClusterInfo, 0, len(clusters))
 	user := c.MustGet("user").(model.User)
+
+	dbClusters, _ := model.ListClusters()
+	envByName := make(map[string]string, len(dbClusters))
+	for _, cl := range dbClusters {
+		envByName[cl.Name] = cl.Environment
+	}
+
 	for name, cluster := range clusters {
 		if !rbac.CanAccessCluster(user, name) {
 			continue
 		}
 		result = append(result, common.ClusterInfo{
-			Name:      name,
-			Version:   cluster.Version,
-			IsDefault: name == defaultContext,
+			Name:        name,
+			Version:     cluster.Version,
+			IsDefault:   name == defaultContext,
+			Environment: envByName[name],
 		})
 	}
 	for name, errMsg := range errors {
@@ -35,10 +43,11 @@ func (cm *ClusterManager) GetClusters(c *gin.Context) {
 			continue
 		}
 		result = append(result, common.ClusterInfo{
-			Name:      name,
-			Version:   "",
-			IsDefault: false,
-			Error:     errMsg,
+			Name:        name,
+			Version:     "",
+			IsDefault:   false,
+			Environment: envByName[name],
+			Error:       errMsg,
 		})
 	}
 	sort.Slice(result, func(i, j int) bool {
@@ -65,6 +74,7 @@ func (cm *ClusterManager) GetClusterList(c *gin.Context) {
 			"inCluster":     cluster.InCluster,
 			"isDefault":     cluster.IsDefault,
 			"prometheusURL": cluster.PrometheusURL,
+			"environment":   cluster.Environment,
 			"config":        "",
 		}
 
@@ -94,6 +104,7 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		PrometheusURL string `json:"prometheusURL"`
 		InCluster     bool   `json:"inCluster"`
 		IsDefault     bool   `json:"isDefault"`
+		Environment   string `json:"environment"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -116,6 +127,11 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		}
 	}
 
+	env := req.Environment
+	if env == "" {
+		env = "default"
+	}
+
 	cluster := &model.Cluster{
 		Name:          req.Name,
 		Description:   req.Description,
@@ -124,6 +140,7 @@ func (cm *ClusterManager) CreateCluster(c *gin.Context) {
 		InCluster:     req.InCluster,
 		IsDefault:     req.IsDefault,
 		Enable:        true,
+		Environment:   env,
 	}
 
 	if err := model.AddCluster(cluster); err != nil {
@@ -160,6 +177,7 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 		InCluster     bool   `json:"inCluster"`
 		IsDefault     bool   `json:"isDefault"`
 		Enabled       bool   `json:"enabled"`
+		Environment   string `json:"environment"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -190,6 +208,7 @@ func (cm *ClusterManager) UpdateCluster(c *gin.Context) {
 		"in_cluster":     req.InCluster,
 		"is_default":     req.IsDefault,
 		"enable":         req.Enabled,
+		"environment":    req.Environment,
 	}
 
 	if req.Name != "" && req.Name != cluster.Name {

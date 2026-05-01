@@ -316,6 +316,19 @@ export interface RelatedResources {
   apiVersion?: string
 }
 
+export interface EnvironmentType {
+  id: number
+  name: string
+  color: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EnvironmentTypeRequest {
+  name: string
+  color: string
+}
+
 export interface Cluster {
   id: number
   name: string
@@ -328,6 +341,7 @@ export interface Cluster {
   createdAt: string
   updatedAt: string
   prometheusURL?: string
+  environment?: string
   error?: string
 }
 
@@ -367,6 +381,7 @@ export interface Role {
   namespaces: string[]
   resources: string[]
   verbs: string[]
+  environments: string[]
   assignments?: RoleAssignment[]
   createdAt: string
   updatedAt: string

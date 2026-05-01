@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { useTerminal } from '@/contexts/terminal-context'
 import { Plus, Settings, TerminalSquare } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
-import { useGeneralSetting } from '@/lib/api'
+import { useEnvironmentTypes, useGeneralSetting } from '@/lib/api'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { cn, getEnvBorderColor } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
@@ -28,10 +29,16 @@ export function SiteHeader() {
     enabled: isAdmin,
   })
   const kubectlEnabled = generalSetting?.kubectlEnabled ?? true
+  const [searchParams] = useSearchParams()
+  const activeEnv = searchParams.get('environment')
+  const { data: envTypes = [] } = useEnvironmentTypes()
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+      <header className={cn(
+        'sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex h-(--header-height) shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)',
+        activeEnv ? ['border-b-2', getEnvBorderColor(activeEnv, envTypes)] : 'border-b'
+      )}>
         <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
           <SidebarTrigger className="-ml-1" />
           <Separator

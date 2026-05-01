@@ -1,6 +1,8 @@
 import { IconCheck, IconChevronDown, IconServer } from '@tabler/icons-react'
+import { useSearchParams } from 'react-router-dom'
 
-import { cn } from '@/lib/utils'
+import { useEnvironmentTypes } from '@/lib/api'
+import { cn, getEnvDotColor } from '@/lib/utils'
 import { useCluster } from '@/hooks/use-cluster'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -19,6 +21,12 @@ export function ClusterSelector() {
     isSwitching,
     isLoading,
   } = useCluster()
+  const [searchParams] = useSearchParams()
+  const activeEnvironment = searchParams.get('environment')
+  const { data: envTypes = [] } = useEnvironmentTypes()
+  const displayClusters = activeEnvironment
+    ? clusters.filter((c) => c.environment === activeEnvironment)
+    : clusters
 
   if (isLoading || isSwitching) {
     return (
@@ -54,7 +62,7 @@ export function ClusterSelector() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
-        {clusters.map((cluster) => (
+        {displayClusters.map((cluster) => (
           <DropdownMenuItem
             key={cluster.name}
             onClick={() => setCurrentCluster(cluster.name)}
@@ -63,6 +71,14 @@ export function ClusterSelector() {
           >
             <div className="flex flex-col overflow-hidden">
               <div className="flex items-center gap-2">
+                {cluster.environment && (
+                  <span
+                    className={cn(
+                      'inline-block h-2 w-2 shrink-0 rounded-full',
+                      getEnvDotColor(cluster.environment, envTypes)
+                    )}
+                  />
+                )}
                 <span className="font-medium">{cluster.name}</span>
                 {cluster.isDefault && (
                   <Badge className="text-xs">Default</Badge>

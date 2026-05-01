@@ -11,9 +11,10 @@ import (
 )
 
 var (
-	RBACConfig *common.RolesConfig
-	once       sync.Once
-	rwlock     sync.RWMutex
+	RBACConfig    *common.RolesConfig
+	clusterEnvMap = map[string]string{}
+	once          sync.Once
+	rwlock        sync.RWMutex
 )
 
 func InitRBAC() {
@@ -39,12 +40,13 @@ func loadRolesFromDB() error {
 
 	for _, r := range roles {
 		cr := common.Role{
-			Name:        r.Name,
-			Description: r.Description,
-			Clusters:    r.Clusters,
-			Namespaces:  r.Namespaces,
-			Resources:   r.Resources,
-			Verbs:       r.Verbs,
+			Name:         r.Name,
+			Description:  r.Description,
+			Clusters:     r.Clusters,
+			Namespaces:   r.Namespaces,
+			Resources:    r.Resources,
+			Verbs:        r.Verbs,
+			Environments: r.Environments,
 		}
 		cfg.Roles = append(cfg.Roles, cr)
 
@@ -60,8 +62,20 @@ func loadRolesFromDB() error {
 			cfg.RoleMapping = append(cfg.RoleMapping, rm)
 		}
 	}
+	dbClusters, err := model.ListClusters()
+	if err != nil {
+		klog.Warningf("rbac: failed to load cluster envs: %v", err)
+	}
+	envMap := make(map[string]string, len(dbClusters))
+	for _, c := range dbClusters {
+		if c != nil {
+			envMap[c.Name] = c.Environment
+		}
+	}
+
 	rwlock.Lock()
 	RBACConfig = cfg
+	clusterEnvMap = envMap
 	rwlock.Unlock()
 	return nil
 }

@@ -11,7 +11,8 @@ type Role struct {
 	Clusters   SliceString `json:"clusters" gorm:"type:text"`
 	Resources  SliceString `json:"resources" gorm:"type:text"`
 	Namespaces SliceString `json:"namespaces" gorm:"type:text"`
-	Verbs      SliceString `json:"verbs" gorm:"type:text"`
+	Verbs        SliceString `json:"verbs" gorm:"type:text"`
+	Environments SliceString `json:"environments" gorm:"type:text"`
 
 	Assignments []RoleAssignment `json:"assignments" gorm:"foreignKey:RoleID;constraint:OnDelete:CASCADE"`
 }

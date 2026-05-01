@@ -73,6 +73,19 @@ export function RBACManagement() {
         ),
       },
       {
+        id: 'environments',
+        header: 'Environments',
+        cell: ({ row: { original: r } }) => (
+          <div className="text-sm text-muted-foreground">
+            {r.environments?.length > 0 ? (
+              r.environments.join(', ')
+            ) : (
+              <span className="text-xs text-muted-foreground">all</span>
+            )}
+          </div>
+        ),
+      },
+      {
         id: 'namespaces',
         header: 'Namespaces',
         cell: ({ row: { original: r } }) => (
